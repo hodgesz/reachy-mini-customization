@@ -66,6 +66,13 @@ The app API in Reachy 1.13 only accepts Hugging Face Spaces for installation. Lo
 
 After installation, reconnect Reachy Mini Control if its Applications list has not refreshed. Keep the app package versions and their shared-library dependency versions in sync when releasing changes. Run the installer again to deploy a new package version; GitHub pushes alone do not update robot code.
 
+To install or update Auburn alone, add `--apps auburn_celebration`. This leaves
+Hello uninstalled if you removed it from the robot. Source and Finder launchers
+for both routines remain available here.
+
+See [troubleshooting and storage](docs/troubleshooting.md) for the SDK 1.13.0
+playback timing repair, safe cache cleanup, and app-update diagnostics.
+
 ## Customize and verify
 
 Edit `HELLO` or `AUBURN` in `src/reachy_customizations/motions.py`. Both desktop apps and Finder launchers read these same definitions. The musical Auburn performance uses the cheer poses as a repeating pattern across a fixed song-start timeline, with a neutral finish. Sequence angles are degrees, `z_mm` is millimeters, and durations are seconds.

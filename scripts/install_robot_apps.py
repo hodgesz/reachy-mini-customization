@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build and install both private apps over SSH, without storing credentials.
+"""Build and install selected local apps over SSH, without storing credentials.
 
 Requires Python 3.11+, build, setuptools, wheel, ssh and scp. Run from a
 terminal so SSH can request your existing robot password or key if needed.
@@ -32,6 +32,9 @@ def main():
     parser.add_argument('--host', default='reachy-mini.local', help='Robot hostname or IPv4 address')
     parser.add_argument('--user', default='pollen', help='Existing robot SSH account')
     parser.add_argument('--known-hosts', type=Path, help='Optional existing SSH host-key file')
+    parser.add_argument('--apps', nargs='+', choices=['hello', 'auburn_celebration'],
+                        default=['hello', 'auburn_celebration'],
+                        help='Apps to install (default: both); omitted apps are left alone')
     args = parser.parse_args()
     if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9.-]*', args.host):
         parser.error('--host must be a hostname or IPv4 address without a scheme or port')
@@ -50,7 +53,10 @@ def main():
     dist = repo / 'dist'
     dist.mkdir(exist_ok=True)
     wheels = []
-    for relative_path, name in PROJECTS:
+    expected = set(args.apps)
+    projects = [project for project in PROJECTS
+                if project[0] == '.' or project[1] in expected]
+    for relative_path, name in projects:
         output = dist / name
         output.mkdir(exist_ok=True)
         subprocess.run([sys.executable, '-m', 'build', '--wheel', '--no-isolation',
@@ -94,9 +100,8 @@ def main():
             command = shlex.join([python, '-m', 'pip', 'install', '--no-deps',
                                   '--force-reinstall', *remote_wheels])
             subprocess.run(ssh + [command], check=True)
-            verify = '''from importlib.metadata import entry_points
+            verify = 'expected = ' + repr(expected) + '\n' + '''from importlib.metadata import entry_points
 from reachy_mini import ReachyMiniApp
-expected = {"hello", "auburn_celebration"}
 found = {ep.name: ep.load() for ep in entry_points(group="reachy_mini_apps") if ep.name in expected}
 assert found.keys() == expected, "Missing app entry point"
 assert all(issubclass(cls, ReachyMiniApp) for cls in found.values())
@@ -104,9 +109,10 @@ print("Verified app imports without moving hardware: " + ", ".join(sorted(found)
 '''
             subprocess.run(ssh + [shlex.join([python, '-c', verify])], check=True)
             installed = api(args.host, '/api/apps/list-available/installed')
-            if not {'hello', 'auburn_celebration'} <= {app['name'] for app in installed}:
-                raise RuntimeError('Both apps imported but were not discovered by the daemon.')
-            print('Installed: hello and auburn_celebration. Reconnect Reachy Mini Control to refresh its list.', flush=True)
+            if not expected <= {app['name'] for app in installed}:
+                raise RuntimeError('Selected apps imported but were not discovered by the daemon.')
+            print('Installed: ' + ', '.join(sorted(expected)) +
+                  '. Reconnect Reachy Mini Control to refresh its list.', flush=True)
         finally:
             if remote_dir:
                 cleanup = 'import shutil; shutil.rmtree(' + repr(remote_dir) + ')'
