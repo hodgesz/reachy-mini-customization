@@ -38,7 +38,7 @@ class RuntimeTests(unittest.TestCase):
         for routine, steps in ROUTINES.items():
             with self.subTest(routine=routine):
                 mini = FakeMini()
-                self.assertTrue(run_sequence(mini, FakeEvent(), routine, lambda **kw: kw))
+                self.assertTrue(run_sequence(mini, FakeEvent(), routine, lambda **kw: kw, music=False))
                 self.assertEqual(len(mini.moves), len(steps))
                 self.assertAlmostEqual(mini.moves[0]['antennas'][0], -0.1745329252)
                 final = mini.moves[-1]
@@ -59,7 +59,7 @@ class RuntimeTests(unittest.TestCase):
     def test_desktop_stop_returns_to_neutral_without_disabling_torque(self):
         event = FakeEvent()
         mini = FakeMini(event)
-        self.assertFalse(run_sequence(mini, event, 'auburn', lambda **kw: kw))
+        self.assertFalse(run_sequence(mini, event, 'auburn', lambda **kw: kw, music=False))
         self.assertEqual(len(mini.moves), 3)
         self.assertEqual(mini.moves[-1]['duration'], 2.0)
         self.assertEqual(mini.moves[-1]['head'], {'degrees': True, 'mm': True})

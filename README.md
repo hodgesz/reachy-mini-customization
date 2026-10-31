@@ -7,9 +7,9 @@ Personal Hello and Auburn football celebration routines for Reachy Mini Wireless
 Once installed on the robot, the Applications list contains two entries:
 
 - **hello** — a gentle nod and two alternating antenna wiggles.
-- **auburn_celebration** — a touchdown head lift, antenna cheers, sways, and victory bobs; about 16 seconds with pauses.
+- **auburn_celebration** — plays the complete 1955 “War Eagle” recording through Reachy's speaker while dancing with head lifts, antenna cheers, sways, and victory bobs. About 2 minutes 27 seconds of music, plus a short settling movement.
 
-Click **Start** on either card to play it once. **Stop** interrupts the sequence after a short current movement and returns smoothly toward neutral. The daemon then handles its normal idle behavior. These entries run on the robot; the Mac command files are not needed to play them. No Hugging Face sign-in or public app-store publication is required.
+Click **Start** on either card to play it once. **Stop** ends the Auburn music and interrupts the sequence after a short current movement, returning smoothly toward neutral. The daemon then handles its normal idle behavior. These entries run on the robot; the Mac command files are not needed to play them. No Hugging Face sign-in or public app-store publication is required.
 
 Keep Reachy on a clear, stable surface. Only one app can control it at a time.
 
@@ -48,6 +48,8 @@ PYTHONPATH=src python3 -m reachy_customizations auburn --dry-run
 
 The default address is `reachy-mini.local`. Override it with `--host ROBOT_IP` using the IP shown in Reachy Mini Control. The Finder launchers also forward these arguments when called from a terminal.
 
+The Auburn command plays the full bundled song on the **robot's speaker**, including when launched from Finder. It uploads the MP3 to the robot's temporary sounds directory, then starts the music and scheduled dance together. Playback works without an Internet connection. Add `--no-music` for the original short, silent celebration; `--dry-run` prints the full music timeline without uploading or playing anything.
+
 ## Install or update the desktop entries
 
 Use Python 3.11+ with `build`, `setuptools`, and `wheel` installed in a virtual environment. The robot must already run Reachy Mini 1.13+.
@@ -66,7 +68,7 @@ After installation, reconnect Reachy Mini Control if its Applications list has n
 
 ## Customize and verify
 
-Edit `HELLO` or `AUBURN` in `src/reachy_customizations/motions.py`. Both desktop apps and Finder launchers read these same definitions. Sequence angles are degrees, `z_mm` is millimeters, and durations are seconds.
+Edit `HELLO` or `AUBURN` in `src/reachy_customizations/motions.py`. Both desktop apps and Finder launchers read these same definitions. The musical Auburn performance uses the cheer poses as a repeating pattern across a fixed song-start timeline, with a neutral finish. Sequence angles are degrees, `z_mm` is millimeters, and durations are seconds.
 
 Project limits are deliberately modest: head angles within 15°, antennas within 40°, height offsets from −5 to 8 mm, and motion durations of at least 0.7 seconds. These are routine limits, not the robot's maximum hardware limits.
 
@@ -75,7 +77,11 @@ PYTHONPATH=src python3 -m unittest discover -s tests
 zsh -n commands/*.command
 ```
 
-The tests use a fake SDK client to verify unit conversion, complete playback, Stop handling, and validation before any motor enable. They do not contact a robot. Ctrl+C on a Mac launcher stops further commands; a short movement already dispatched may finish. Keep the robot's power switch accessible.
+The tests use fake clients and clocks to verify unit conversion, complete playback, Stop handling, validation before motor enable, the recording checksum, and full-song scheduling without accumulated RPC delay. They do not contact a robot. Ctrl+C on a musical Auburn launcher stops the sound and returns to neutral after any short current movement. Keep the robot's power switch accessible.
+
+## Music attribution
+
+The bundled recording is **War Eagle - Auburn University Fight Song (1955 45rpm)**, credited to Auburn University and uploaded by Auburn University Libraries. The [Internet Archive item](https://archive.org/details/War_Eagle_1955_single) states [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). The original MP3 is unchanged; the music-and-dance adaptation follows the same terms. Source, checksum, duration, and attribution are included under `src/reachy_customizations/assets/`.
 
 ## Setup notes
 

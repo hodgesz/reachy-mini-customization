@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "auburn_celebration"
-version = "0.2.0"
+version = "0.3.0"
 description = "Auburn Celebration routine for Reachy Mini Control"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = ["reachy-mini>=1.13.0,<2", "reachy-mini-customization==0.2.0"]
+dependencies = ["reachy-mini>=1.13.0,<2", "reachy-mini-customization==0.3.0"]
 keywords = ["reachy-mini-app"]
 
 [project.entry-points."reachy_mini_apps"]

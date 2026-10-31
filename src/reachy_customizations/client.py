@@ -91,3 +91,21 @@ class Robot:
                 raise RuntimeError('Robot reported an error: ' + str(status.get('error') or backend.get('error')))
             print('Position:', json.dumps(self.api('/api/state/full')), flush=True)
         print(label + ' complete; Reachy is holding neutral.', flush=True)
+
+    def play_auburn_with_music(self):
+        import threading
+        from .music import RESTMusicPlayer, perform_auburn
+        player = RESTMusicPlayer(self)
+        self.prepare()
+
+        def move(step):
+            self.api('/api/move/goto', {
+                'head_pose': pose(step.get('pitch', 0), step.get('roll', 0),
+                                  step.get('yaw', 0), step.get('z_mm', 0)),
+                'antennas': [radians(angle) for angle in step['antennas']],
+                'body_yaw': 0, 'duration': step['duration'], 'interpolation': 'minjerk',
+            })
+            time.sleep(step['duration'])
+            self.wait_idle()
+
+        return perform_auburn(move, threading.Event(), player)

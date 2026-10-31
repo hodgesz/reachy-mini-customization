@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "reachy-mini-customization"
-version = "0.2.0"
+version = "0.3.0"
 description = "Shared hello and Auburn celebration routines for Reachy Mini"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -16,3 +16,6 @@ auburn-celebration = "reachy_customizations.cli:auburn_main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+reachy_customizations = ["assets/*.mp3", "assets/*.json", "assets/*.md"]

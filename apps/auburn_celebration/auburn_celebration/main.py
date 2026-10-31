@@ -5,6 +5,7 @@ from reachy_customizations.sdk_app import SequenceApp, launch
 class AuburnCelebration(SequenceApp):
     custom_app_url = None
     routine = 'auburn'
+    request_media_backend = 'default'
 
 
 if __name__ == '__main__':

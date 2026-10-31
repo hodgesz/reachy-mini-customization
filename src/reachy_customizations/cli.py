@@ -13,17 +13,27 @@ def main(argv=None):
     parser.add_argument('routine', choices=ROUTINES)
     parser.add_argument('--host', default='reachy-mini.local', help='Robot hostname or IPv4 address')
     parser.add_argument('--dry-run', action='store_true', help='Preview without connecting to or moving Reachy')
+    parser.add_argument('--no-music', action='store_true', help='Use the original short silent Auburn routine')
     args = parser.parse_args(argv)
     if any(char in args.host for char in '/:@?#'):
         parser.error('--host must be a hostname or IPv4 address without a scheme or port')
     steps = ROUTINES[args.routine]
     validate_motion(steps)
     if args.dry_run:
-        print(json.dumps(steps, indent=2))
+        if args.routine == 'auburn' and not args.no_music:
+            from .music import TRACK, auburn_timeline
+            print(json.dumps({'music': TRACK, 'settle_duration': 2.5,
+                              'steps': auburn_timeline()}, indent=2))
+        else:
+            print(json.dumps(steps, indent=2))
         return 0
     try:
         print('Keep Reachy on a clear, stable surface.', flush=True)
-        Robot(args.host).play(steps, label=LABELS[args.routine])
+        robot = Robot(args.host)
+        if args.routine == 'auburn' and not args.no_music:
+            robot.play_auburn_with_music()
+        else:
+            robot.play(steps, label=LABELS[args.routine])
     except (urllib.error.URLError, TimeoutError, RuntimeError, KeyError, ValueError) as error:
         print('Routine stopped: ' + str(error), file=sys.stderr)
         return 1

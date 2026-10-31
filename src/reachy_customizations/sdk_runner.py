@@ -4,7 +4,7 @@ import math
 from .motions import LABELS, ROUTINES, validate_motion
 
 
-def run_sequence(mini, stop_event, routine, pose_factory=None):
+def run_sequence(mini, stop_event, routine, pose_factory=None, music=True):
     steps = ROUTINES[routine]
     validate_motion(steps)
     if stop_event.is_set():
@@ -12,6 +12,22 @@ def run_sequence(mini, stop_event, routine, pose_factory=None):
     if pose_factory is None:
         from reachy_mini.utils import create_head_pose
         pose_factory = create_head_pose
+    if routine == 'auburn' and music:
+        from .music import SDKMusicPlayer, perform_auburn
+        player = SDKMusicPlayer(mini.media)
+        mini.enable_motors()
+
+        def move(step):
+            mini.goto_target(
+                head=pose_factory(
+                    pitch=step.get('pitch', 0), roll=step.get('roll', 0),
+                    yaw=step.get('yaw', 0), z=step.get('z_mm', 0), degrees=True, mm=True,
+                ),
+                antennas=[math.radians(angle) for angle in step['antennas']],
+                body_yaw=0, duration=step['duration'],
+            )
+
+        return perform_auburn(move, stop_event, player)
     # SDK 1.13 safely pins present targets before enabling torque.
     mini.enable_motors()
     print(LABELS[routine] + ' started.', flush=True)
