@@ -64,8 +64,8 @@ def main():
     from importlib.metadata import Distribution
     # Old image builds can leave an egg-info record beside the active wheel.
     # Check the current wheel's metadata, then verify its exact method below.
-    metadata = args.sdk_root / 'reachy_mini-1.13.0.dist-info'
-    if not metadata.is_dir() or Distribution.at(metadata).version != '1.13.0':
+    wheels = list(args.sdk_root.glob('reachy_mini-*.dist-info'))
+    if len(wheels) != 1 or Distribution.at(wheels[0]).version != '1.13.0':
         parser.error('This repair supports only the known SDK 1.13.0 implementation.')
     target = args.sdk_root / 'reachy_mini/daemon/backend/abstract.py'
     source = target.read_text()
