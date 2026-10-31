@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hello"
+version = "0.2.0"
+description = "Hello routine for Reachy Mini Control"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["reachy-mini>=1.13.0,<2", "reachy-mini-customization==0.2.0"]
+keywords = ["reachy-mini-app"]
+
+[project.entry-points."reachy_mini_apps"]
+hello = "hello.main:Hello"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["hello*"]

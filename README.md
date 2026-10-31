@@ -1,63 +1,90 @@
 # Reachy Mini Customization
 
-Personal movements and customizations for a Reachy Mini Wireless.
+Personal Hello and Auburn football celebration routines for Reachy Mini Wireless. Run them from Reachy Mini Control or from the Mac launchers.
 
-## Run a routine on macOS
+## Run from Reachy Mini Control
 
-1. Power on Reachy and connect your Mac to the same local network.
-2. Stop other robot apps and leave Reachy Mini Control on its home screen.
-3. Put Reachy on a clear, stable surface.
-4. In Finder, double-click **Reachy Hello.command** or **Auburn Celebration.command**.
+Once installed on the robot, the Applications list contains two entries:
 
-Keep the launchers and Python files together. Python 3 is required; no additional packages need installing. The routines communicate directly with the robot's local REST API and finish holding a neutral pose.
+- **hello** — a gentle nod and two alternating antenna wiggles.
+- **auburn_celebration** — a touchdown head lift, antenna cheers, sways, and victory bobs; about 16 seconds with pauses.
 
-## Run from a terminal
+Click **Start** on either card to play it once. **Stop** interrupts the sequence after a short current movement and returns smoothly toward neutral. The daemon then handles its normal idle behavior. These entries run on the robot; the Mac command files are not needed to play them. No Hugging Face sign-in or public app-store publication is required.
+
+Keep Reachy on a clear, stable surface. Only one app can control it at a time.
+
+## Run from Finder
+
+Open `commands/` and double-click **Reachy Hello.command** or **Auburn Celebration.command**. Keep the repository folders together. The launchers find `src/` relative to their own location, so they work regardless of the current terminal directory.
+
+These LAN launchers need Python 3.9+ and your Mac on the same Wi-Fi as Reachy. No extra Python packages are required. Stop any other robot app and leave Reachy Mini Control on its home screen before using a launcher.
+
+## Repository layout
+
+```text
+commands/                   Mac double-click launchers
+src/reachy_customizations/   Shared movements, REST CLI, SDK adapter
+apps/hello/                 Hello desktop app package
+apps/auburn_celebration/     Auburn desktop app package
+scripts/                    Private local installation tooling
+tests/                      Checks that do not move hardware
+pyproject.toml              Shared Python package metadata
+```
+
+## Terminal use and previews
 
 ```sh
 cd ~/VsCodeProjects/reachy-mini-customization
-python3 reachy_hello.py
-python3 auburn_celebration.py
+PYTHONPATH=src python3 -m reachy_customizations hello
+PYTHONPATH=src python3 -m reachy_customizations auburn
 ```
 
-Run one routine at a time. To preview without connecting to or moving the robot:
+Preview without connecting to or moving Reachy:
 
 ```sh
-python3 reachy_hello.py --dry-run
-python3 auburn_celebration.py --dry-run
+PYTHONPATH=src python3 -m reachy_customizations hello --dry-run
+PYTHONPATH=src python3 -m reachy_customizations auburn --dry-run
 ```
 
-If the default hostname `reachy-mini.local` does not resolve, use the IP shown in Reachy Mini Control:
+The default address is `reachy-mini.local`. Override it with `--host ROBOT_IP` using the IP shown in Reachy Mini Control. The Finder launchers also forward these arguments when called from a terminal.
+
+## Install or update the desktop entries
+
+Use Python 3.11+ with `build`, `setuptools`, and `wheel` installed in a virtual environment. The robot must already run Reachy Mini 1.13+.
 
 ```sh
-python3 reachy_hello.py --host ROBOT_IP
-python3 auburn_celebration.py --host ROBOT_IP
+python3.12 -m venv .venv
+.venv/bin/python -m pip install build setuptools wheel
+.venv/bin/python scripts/install_robot_apps.py --host ROBOT_IP
 ```
 
-Replace `ROBOT_IP` with the robot's current IPv4 address. Addresses can change when a router assigns a new lease.
+The installer builds three wheels: the common library and one for each app. It transfers them over SSH into a temporary directory, installs them in the robot's managed apps environment, verifies both entry points, and removes the temporary files. Run it in a terminal so SSH can request your existing robot password or key. No credentials are saved. It does not start a routine, publish code to an app store, or change the startup app.
 
-## Included routines
+The app API in Reachy 1.13 only accepts Hugging Face Spaces for installation. Local private packages therefore use SSH for installation, while the supported app API discovers and launches them afterward.
 
-| Routine | Behavior |
-| --- | --- |
-| Hello | A gentle nod and two alternating antenna wiggles. |
-| Auburn celebration | Looks toward the stands, lifts into a touchdown pose, sways through “War Eagle,” and finishes with victory bobs. About 16 seconds including pauses. |
+After installation, reconnect Reachy Mini Control if its Applications list has not refreshed. Keep the app package versions and their shared-library dependency versions in sync when releasing changes. Run the installer again to deploy a new package version; GitHub pushes alone do not update robot code.
 
-`reachy_hello.py` contains the shared `Robot` client and hello sequence. `auburn_celebration.py` imports that client and defines its own sequence. Both use only Python's standard library.
+## Customize and verify
 
-Edit `GESTURE` or `DANCE` to adjust timing and expression. Sequence angles are in degrees, optional `z_mm` is in millimeters, and durations are in seconds. The shared client converts these values to the API's units and applies conservative bounds for these routines: head angles within 15°, antenna angles within 40°, height offsets from −5 to 8 mm, and movements lasting at least 0.7 seconds. These are project limits, not the robot's maximum hardware limits.
+Edit `HELLO` or `AUBURN` in `src/reachy_customizations/motions.py`. Both desktop apps and Finder launchers read these same definitions. Sequence angles are degrees, `z_mm` is millimeters, and durations are seconds.
 
-## Robot setup and troubleshooting
+Project limits are deliberately modest: head angles within 15°, antennas within 40°, height offsets from −5 to 8 mm, and motion durations of at least 0.7 seconds. These are routine limits, not the robot's maximum hardware limits.
 
-- Reachy Mini Control v0.9.37 and robot software v1.13.0 were verified working on October 31, 2026. Both routines were physically tested before that update on robot software v1.2.3.
-- If the desktop app still shows an old version after an update completed, disconnect and reconnect. In our setup, this cleared a stale “Robot update required” page even though the robot was already current.
-- The routines refuse to start if another robot app or movement is active. On older robot software, they prime motor targets with the current position before enabling motors to avoid a sudden jump.
-- Ctrl+C stops the script from sending further movements. A short movement already sent to the robot may finish. Keep the robot's physical power switch accessible.
-- Routine errors appear in Terminal. The scripts leave the robot holding its last commanded pose rather than abruptly disabling torque.
+```sh
+PYTHONPATH=src python3 -m unittest discover -s tests
+zsh -n commands/*.command
+```
 
-Keep machine-specific addresses, credentials, recordings, logs, and session notes out of commits. Use ignored `agents.local.md` for local setup notes.
+The tests use a fake SDK client to verify unit conversion, complete playback, Stop handling, and validation before any motor enable. They do not contact a robot. Ctrl+C on a Mac launcher stops further commands; a short movement already dispatched may finish. Keep the robot's power switch accessible.
+
+## Setup notes
+
+- Desktop app v0.9.37 and robot software v1.13.0 were verified working on October 31, 2026. The original choreography was physically tested on 1.2.3 before the update.
+- If an update completed but Control still shows the old version, disconnect and reconnect. This cleared a stale “Robot update required” page in this setup.
+- Credentials, local IP addresses, logs, recordings, and session notes belong in ignored files such as `agents.local.md`.
 
 ## References
 
 - [Reachy Mini setup](https://pollen-robotics.com/reachy-mini/getting-started/)
-- [Official SDK and API documentation](https://huggingface.co/docs/reachy_mini/index)
-- [Official source code](https://github.com/pollen-robotics/reachy_mini)
+- [SDK and API documentation](https://huggingface.co/docs/reachy_mini/index)
+- [Official app framework](https://github.com/pollen-robotics/reachy_mini/tree/main/src/reachy_mini/apps)

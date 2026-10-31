@@ -10,3 +10,6 @@ agents.local.md
 work/
 *.log
 recordings/
+build/
+dist/
+*.egg-info/

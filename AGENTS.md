@@ -1,13 +1,15 @@
 # Project guidance
 
-This repository holds personal Reachy Mini Wireless routines. Keep simple movements local, dependency-free, and easy to run from Finder or a terminal.
+Personal Reachy Mini Wireless routines. Keep movement definitions shared, local, and easy to launch.
 
-- Read `README.md` and ignored `agents.local.md` when present for setup context.
-- Prefer connected tools for third-party services. Use another access method only when the connector cannot perform the requested action, and explain that limitation.
-- Preview changes with `python3 reachy_hello.py --dry-run` and `python3 auburn_celebration.py --dry-run`. Check launchers with `zsh -n`. These checks must not contact or move the robot.
-- Do not run physical routines as an incidental code check. Physical tests require an active user request covering robot movement and a clear, stable surface.
-- Reuse `Robot` from `reachy_hello.py`; keep launchers and imported modules adjacent unless updating all affected paths together.
-- Preserve smooth interpolation, conservative motion limits, current-pose target priming before enabling motors on older firmware, and a neutral finish.
-- Avoid automatic disabling of torque on errors: the head can fall under gravity.
-- Keep credentials, machine-specific network details, private logs, recordings, and session notes out of Git.
-- Do not publish to an app store, add cloud accounts, enable automatic game triggers, or change robot startup behavior unless requested.
+- Read `README.md` and ignored `agents.local.md` for setup context.
+- Prefer connected tools for third-party services. Explain capability limitations before using another access method.
+- `commands/` contains Finder launchers. `src/reachy_customizations/` holds shared choreography, the REST CLI, and the SDK app adapter. `apps/` contains independently installable Reachy Mini Control entries. `scripts/` contains deployment tooling.
+- Preview without hardware: `PYTHONPATH=src python3 -m reachy_customizations hello --dry-run` and the same command with `auburn`. Check launchers with `zsh -n commands/*.command`.
+- Test adapter safety and Stop behavior with `PYTHONPATH=src python3 -m unittest discover -s tests`. Tests must never contact or move a robot.
+- Physical tests require an active user request covering movement and a clear, stable surface. Installation and discovery checks should not start the routines incidentally.
+- Keep choreography in `motions.py`. Both launch methods must use it; do not duplicate sequences in app packages.
+- Preserve smooth interpolation, conservative limits, safe motor enable, and a neutral finish. Do not drop torque abruptly on errors.
+- Local robot apps use SDK 1.13+ and must honor desktop Stop. They play once per Start; do not add loops or automatic startup without a request.
+- Keep credentials, local IPs, private logs, recordings, and session notes out of commits.
+- Do not publish to an app store, add cloud accounts, or enable automatic game triggers unless requested.
