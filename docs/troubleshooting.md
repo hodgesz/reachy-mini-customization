@@ -64,6 +64,30 @@ available in the repository. To update Auburn without reinstalling Hello:
 .venv/bin/python scripts/install_robot_apps.py --host ROBOT_IP --apps auburn_celebration
 ```
 
+## Red Light Green Light plays sounds without moving
+
+The original game starts sending movement commands without enabling motors.
+After a session leaves Reachy in torque-off standby, the app can keep counting
+and playing audio while the head remains down. The game deliberately uses a
+lowered pose for counting, then should raise its head to scan players; remaining
+limp throughout is a startup omission.
+
+`scripts/repair_red_light_startup.py` adds motor enable followed by a slow,
+2.5-second movement to upright before the first game round. SDK 1.13 pins motor
+targets to the measured pose before enabling torque. The repair honors a Stop
+request before movement, preserves the game's existing poses, and never disables
+torque abruptly. Copy it to the robot, stop apps, then run:
+
+```sh
+/venvs/apps_venv/bin/python repair_red_light_startup.py --apply
+```
+
+It checks for an active app, saves the original file in the same robot backup
+directory as the timing repair, and takes effect on the next game Start. No
+daemon restart is needed. An official app update can replace this local repair.
+Restore the reported backup while the game is stopped to undo it. Fake-hardware
+tests cover startup from standby and Stop before or during initialization.
+
 ## Conversation and connection messages
 
 The old Conversation app 0.1.0 reads `get_status()["simulation_enabled"]`,
