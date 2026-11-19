@@ -8,6 +8,9 @@ Generation uses the operator's sign-in and never requires a CI credential.
 
 ## Review a PR
 
+The merge check for `main` is `gemini-review`. The GitHub Actions verifier
+publishes the status on the exact PR head.
+
 Use Node 22.22.2 and the checksum-verified Antigravity executable. Work from a
 clean checkout of the exact base, with both commits available locally.
 
