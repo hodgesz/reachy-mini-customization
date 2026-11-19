@@ -2,6 +2,8 @@
 
 Personal Reachy Mini Wireless routines. Keep movement definitions shared, local, and easy to launch.
 
+Use [native Neon LOW PR review](docs/PR_REVIEW.md) and the current-head CI checks before merging.
+
 - Read `README.md` and ignored `agents.local.md` for setup context.
 - Prefer connected tools for third-party services. Explain capability limitations before using another access method.
 - `commands/` contains Finder launchers. `src/reachy_customizations/` holds shared choreography, the REST CLI, and the SDK app adapter. `apps/` contains independently installable Reachy Mini Control entries. `scripts/` contains deployment tooling.
